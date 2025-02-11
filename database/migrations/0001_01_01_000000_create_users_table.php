@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('facebook_id')->nullable();
             $table->string('github_id')->nullable();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('phone_number')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

@@ -100,19 +100,19 @@ class SocialLoginController extends Controller
         $timeStamp = Carbon::now();
         $userDetailes = Socialite::driver('github')->user(); //getting github user data
         $user = User::where('email', $userDetailes->email)->first();  //Checking in the user table where retrieved github id is available in the database
-        
+        $userID = User::where('github_id', $userDetailes->id)->first();
    
         //Checking if the user exisits in the database and email is verified
-        if($user){
+        if($user || $userID){
             if($user->email_verified_at){
-                Auth::login($user); //If the user exisits authenticate him/her
+                Auth::login($userID); //If the user exisits authenticate him/her
                 return redirect()->route('dashboard');  //redirecting authenticated user to the dashboard/ Home page
             }
 
             //If the user exisits but email is not verified, then we need to update the email_verified_at column in the database
-            if(!$user->email_verified_at){
+            if(!$userID->email_verified_at){
                 $createUser = User::updateOrCreate(
-                    ['email' => $userDetailes->email], // Find the user by email
+                    ['github_id' => $userDetailes->id], // Find the user by email
                     [
                         'name' => $userDetailes->name,
                         'password' => Hash::make('pass21345'),
@@ -140,6 +140,12 @@ class SocialLoginController extends Controller
                 'login_method' => "github",
                 'email_verified_at' => $timeStamp,
             ]);
+
+                    //If the email_verified_at column is updated, then login the user
+                    if($createUser){   //if data is created in the database, loginin the use
+                        Auth::login($createUser ); 
+                        return redirect()->route('dashboard');  //redirecting authenticated user to the dashboard/ Home page
+                    }
         }
     }
 }
